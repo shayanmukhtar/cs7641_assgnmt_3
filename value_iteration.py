@@ -70,10 +70,10 @@ def run_value_iteration(params):
             while True:
                 observation, reward, done, info = env.step(action)
                 cum_reward += reward
-                rewards.append(cum_reward)
                 if done:
                     break
                 action = run['mdp'].policy[observation]
+            rewards.append(cum_reward)
         label = "Gamma: " + str(run['gamma']) + " Epsilon: " + str(run['epsilon'])
         plt.plot(rewards, label=label)
 

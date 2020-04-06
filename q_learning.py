@@ -7,7 +7,7 @@ import seaborn
 import math
 
 class Q_Learner(object):
-    def __init__(self, num_states, num_actions, alpha, gamma, rar, radr, epsilon):
+    def __init__(self, num_states, num_actions, alpha, gamma, rar, radr, epsilon, dyna=0):
         self.num_states = num_states
         self.num_actions = num_actions
         self.alpha = alpha
@@ -20,6 +20,8 @@ class Q_Learner(object):
         self.state = 0
         self.action = 0
         self.epsilon = epsilon
+        self.dyna = dyna
+        self.exp_tuples = np.zeros((1, 4)) # s, a, r, s' tuples for dyna
 
     # called after observation is taken, gives you s_prime and r
     # internally we keep track of s and a
@@ -39,6 +41,31 @@ class Q_Learner(object):
         one_minus_alpha = 1.0 - self.alpha
         arg_max = np.argmax(a=self.q_values[s_prime, :])
         self.q_values[s, a] = (one_minus_alpha * self.q_values[s, a]) + (self.alpha * (reward + (self.gamma * self.q_values[s_prime, arg_max])))
+
+        # include the rewards that mean something
+        if reward >= 0.5:
+            self.exp_tuples = np.vstack((self.exp_tuples, [self.state, self.action, s_prime, reward]))
+
+        if self.dyna > 0 and self.exp_tuples.shape[0] > 1:
+            # And draw from them randomly to hallucinate - do all the random number generation
+            # one outside the for loop to save some time
+            random_experiences = np.random.randint(low=1, high=self.exp_tuples.shape[0], size=self.dyna)
+            random_hallucinations = self.exp_tuples[random_experiences, :]
+            random_states = random_hallucinations[:, 0].astype(int)
+            random_actions = random_hallucinations[:, 1].astype(int)
+            random_s_primes = random_hallucinations[:, 2].astype(int)
+            random_rewards = random_hallucinations[:, 3]
+
+            # And update the Q tables based on the hallucinations
+            for hallucination in range(0, self.dyna):
+                # And now update the Q table with the hallucinated experience Tuple
+                random_state = random_states[hallucination]
+                random_action = random_actions[hallucination]
+                inferred_s_prime = random_s_primes[hallucination]
+                inferred_reward = random_rewards[hallucination]
+                inferred_arg_max = np.argmax(a=self.q_values[inferred_s_prime, :])
+                self.q_values[random_state, random_action] = (one_minus_alpha * self.q_values[random_state, random_action]) + (
+                            self.alpha * (inferred_reward + (self.gamma * self.q_values[inferred_s_prime, inferred_arg_max])))
 
         self.state = s_prime
         self.action = a_prime
@@ -78,12 +105,14 @@ def run_q_learning(params):
         for alpha in alphas:
             for radr in radrs:
                 for epsilon in epsilons:
-                    q_learner = Q_Learner(num_states, num_actions, alpha, gamma, 1.0, radr, epsilon=epsilon)
+                    q_learner = Q_Learner(num_states, num_actions, alpha, gamma, 1.0, radr, epsilon=epsilon, dyna=0)
                     q_learners.append(q_learner)
 
     # run through all the q learners, but also plot their progress in convergence
     plt.figure()
     for q_learner in q_learners:
+        if params['use_r_max']:
+            q_learner.q_values[:, :] = 1
         errors = []
         for episode in range(max_episodes):
             observation = env.reset()
@@ -92,9 +121,10 @@ def run_q_learning(params):
             while True:  # loop for each step in the episode
                 # env.render()
                 observation, reward, done, info = env.step(action)
-                reward_perceived = params['reward_shape'](observation, reward, done, q_learner, info)
-                action = q_learner.determine_action(observation, reward_perceived)
+                # reward_perceived = params['reward_shape'](observation, reward, done, q_learner, info)
+                action = q_learner.determine_action(observation, reward)
                 if done:
+                    print(str(episode))
                     break
             errors.append(abs(old_q_values - q_learner.q_values).max())
         label = "G: " + str(q_learner.gamma) + " A: " + str(q_learner.alpha) + " R: " + str(q_learner.radr)
@@ -120,7 +150,7 @@ def run_q_learning(params):
         figsize = params['figsize']
         fig, ax = plt.subplots(figsize=(figsize, figsize))
         h_map = seaborn.heatmap(state_values, fmt='0.2g', annot=False, ax=ax)
-        title = 'Q-Values Heatmap - Manhattan Distance Reward Shaping'
+        title = params['q_value_heatmap']
         h_map.title.set_text(title)
         plt.savefig(path + title + ".png")
         plt.close()

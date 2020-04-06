@@ -12,6 +12,7 @@ def frozen_lake():
 
     frozen_lake_map = generate_random_map(32, 0.98)
     frozen_lake_env = gym.make("FrozenLake-v0", desc=frozen_lake_map)
+    frozen_lake_env._max_episode_steps = 1000000
     NUM_ACTIONS = frozen_lake_env.action_space.n
     NUM_STATES = frozen_lake_env.observation_space.n
 
@@ -44,17 +45,20 @@ def frozen_lake():
         'error_plot_title_policy': 'Frozen Lake - Iterations vs Error in State Values for Policy Iteration',
         'error_plot_x_axes_policy': (-1, 10),
         'make_policy_heat_map': True,
+        'state_action_map': lambda s: ['L', 'D', 'R', 'U'][s],
         'policy_heat_map_name': 'Frozen Lake - Policy to State Mapping from Policy Iteration',
         'policy_iteration_policy_eval': 'Frozen Lake - Policy Evaluation over 1000 Episodes for Policy Iteration',
         'q_gamma': [0.99], #[0.95, 0.975, 0.99],
         'q_epsilon': [1e-5],
         'q_alphas': [0.1], #[0.01, 0.001],
-        'q_radrs': [0.99999999], #[0.999, 0.99999],
-        'q_learning_error_plot_title_value': 'Frozen Lake - Episode vs Error in Q Values for Q Learning',
+        'q_radrs': [0.999999], #[0.999, 0.99999],
+        'q_learning_error_plot_title_value': 'Frozen Lake - Episode vs Error in Q Values for Q Learning - No Reward Shaping with R-Max and Dyna',
         'q_path_value': './Q_Learning/',
-        'q_episodes': 10000000,
-        'q_policy_eval': 'Frozen Lake - Policy Evaluation over 1000 Episodes for Q Learning',
-        'reward_shape': shape_reward_ng_style
+        'q_episodes': 500000,
+        'q_policy_eval': 'Frozen Lake - Policy Evaluation over 1000 Episodes for Q Learning - No Reward Shaping with R-Max and Dyna',
+        'reward_shape': shape_reward_pour_la_lac,
+        'q_value_heatmap': 'Q-Values Heatmap - No Reward Shaping with R-Max and Dyna',
+        'use_r_max': True
     }
     frozen_lake_env.render()
     # value_iteration.run_value_iteration(params)
@@ -77,7 +81,8 @@ def shape_reward_ng_style(observation, reward, done, q_learner, info=None):
             reward_new = -50000
     return reward_new
 
-def shape_reward_pour_la_lac(observation, reward, done, q_learner):
+
+def shape_reward_pour_la_lac(observation, reward, done, q_learner, info=None):
     if not done:
         x_pos_new = observation % 32
         y_pos_new = observation // 32
@@ -92,7 +97,7 @@ def shape_reward_pour_la_lac(observation, reward, done, q_learner):
         #     reward_new = reward + (distance_old - distance_new)
         # else:
         #     # we've come closer - thats positive reward
-        reward_new = reward + (distance_old - distance_new)
+        reward_new = reward + ((distance_old - distance_new) / 2.0)
 
         return reward_new
     else:

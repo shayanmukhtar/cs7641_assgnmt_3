@@ -44,7 +44,7 @@ def run_policy_iteration(params):
             plt.figure()
             num_states_1d = int(np.sqrt(num_states))
             state_action_values = np.reshape(run['mdp'].policy, (num_states_1d, num_states_1d))
-            state_action_map = lambda s: ['L', 'D', 'R', 'U'][s]
+            state_action_map = params['state_action_map']
             annotations_func = np.vectorize(state_action_map)
             annotations = annotations_func(state_action_values)
             figsize = params['figsize']
@@ -67,10 +67,10 @@ def run_policy_iteration(params):
             while True:
                 observation, reward, done, info = env.step(action)
                 cum_reward += reward
-                rewards.append(cum_reward)
                 if done:
                     break
                 action = run['mdp'].policy[observation]
+            rewards.append(cum_reward)
         label = "Gamma: " + str(run['gamma'])
         plt.plot(rewards, label=label)
 
