@@ -10,7 +10,7 @@ import math
 def frozen_lake():
     np.random.seed(786)
 
-    frozen_lake_map = generate_random_map(32, 0.98)
+    frozen_lake_map = generate_random_map(32, 0.90)
     frozen_lake_env = gym.make("FrozenLake-v0", desc=frozen_lake_map)
     frozen_lake_env._max_episode_steps = 1000000
     NUM_ACTIONS = frozen_lake_env.action_space.n
@@ -52,13 +52,13 @@ def frozen_lake():
         'q_epsilon': [1e-5],
         'q_alphas': [0.1], #[0.01, 0.001],
         'q_radrs': [0.999999], #[0.999, 0.99999],
-        'q_learning_error_plot_title_value': 'Frozen Lake - Episode vs Error in Q Values for Q Learning - No Reward Shaping with R-Max and Dyna',
+        'q_learning_error_plot_title_value': 'Frozen Lake - Episode vs Error in Q Values for Q Learning - Reward Shaping Euclidean Distance',
         'q_path_value': './Q_Learning/',
-        'q_episodes': 500000,
-        'q_policy_eval': 'Frozen Lake - Policy Evaluation over 1000 Episodes for Q Learning - No Reward Shaping with R-Max and Dyna',
+        'q_episodes': 300000,
+        'q_policy_eval': 'Frozen Lake - Policy Evaluation over 1000 Episodes for Q Learning - Reward Shaping Euclidean Distance',
         'reward_shape': shape_reward_pour_la_lac,
-        'q_value_heatmap': 'Q-Values Heatmap - No Reward Shaping with R-Max and Dyna',
-        'use_r_max': True
+        'q_value_heatmap': 'Q-Values Heatmap - Reward Shaping Euclidean Distance',
+        'use_r_max': False
     }
     frozen_lake_env.render()
     # value_iteration.run_value_iteration(params)

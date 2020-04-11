@@ -43,6 +43,7 @@ def run_value_iteration(params):
     plt.legend()
     plt.xlim(params['error_plot_x_axes_value'])
     plt.savefig(path + error_plot_title)
+    plt.close()
 
     # plot the value map of environment if possible for all the hyperparameters
     for run in runs:

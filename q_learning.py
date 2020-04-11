@@ -121,8 +121,8 @@ def run_q_learning(params):
             while True:  # loop for each step in the episode
                 # env.render()
                 observation, reward, done, info = env.step(action)
-                # reward_perceived = params['reward_shape'](observation, reward, done, q_learner, info)
-                action = q_learner.determine_action(observation, reward)
+                reward_perceived = params['reward_shape'](observation, reward, done, q_learner, info)
+                action = q_learner.determine_action(observation, reward_perceived)
                 if done:
                     print(str(episode))
                     break
