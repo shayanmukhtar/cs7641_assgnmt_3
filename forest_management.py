@@ -3,6 +3,7 @@ import value_iteration
 import policy_iteration
 import q_learning
 import numpy as np
+import time
 
 
 class obs_space(object):
@@ -90,8 +91,12 @@ def run_forest_management():
         'use_r_max': False
     }
 
-    # value_iteration.run_value_iteration(params)
-    # policy_iteration.run_policy_iteration(params)
+    seconds_now = time.time()
+    value_iteration.run_value_iteration(params)
+    print("Value iteration took: " + str(time.time() - seconds_now))
+    seconds_now = time.time()
+    policy_iteration.run_policy_iteration(params)
+    print("Policy iteration took: " + str(time.time() - seconds_now))
     q_learning.run_q_learning(params)
 
 

@@ -6,6 +6,7 @@ import hiive.mdptoolbox.mdp as mdp
 from gym.envs.toy_text.frozen_lake import generate_random_map
 import q_learning
 import math
+import time
 
 def frozen_lake():
     np.random.seed(786)
@@ -61,8 +62,13 @@ def frozen_lake():
         'use_r_max': False
     }
     frozen_lake_env.render()
-    # value_iteration.run_value_iteration(params)
-    # policy_iteration.run_policy_iteration(params)
+
+    seconds_now = time.time()
+    value_iteration.run_value_iteration(params)
+    print("Value iteration took: " + str(time.time() - seconds_now))
+    seconds_now = time.time()
+    policy_iteration.run_policy_iteration(params)
+    print("Policy Iteration took: " + str(time.time() - seconds_now))
     q_learning.run_q_learning(params)
 
 
